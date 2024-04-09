@@ -68,25 +68,26 @@ public class DB_Localisation extends Application {
                 bundle = ResourceBundle.getBundle("com.example.db_localisation.messages", locale_en);
 
             }
-            updateUI(labelFirstName, labelLastName, labelEmail, button, labelChooseLanguage);
+            updateUI(primaryStage,labelFirstName, labelLastName, labelEmail, button, labelChooseLanguage);
         });
 
         //bundle = ResourceBundle.getBundle("messages", locale_en);
         bundle = ResourceBundle.getBundle("com.example.db_localisation.messages", locale_en);
 
-        updateUI(labelFirstName, labelLastName, labelEmail, button, labelChooseLanguage);
+        updateUI(primaryStage,labelFirstName, labelLastName, labelEmail, button, labelChooseLanguage);
 
         button.setOnAction(e -> saveData(inputFirstName.getText(), inputLastName.getText(), inputEmail.getText(), comboBoxLanguage.getValue()));
 
         grid.getChildren().addAll(labelChooseLanguage, comboBoxLanguage, labelFirstName, inputFirstName, labelLastName, inputLastName, labelEmail, inputEmail, button);
 
         Scene scene = new Scene(grid, 400, 200);
-        primaryStage.setTitle("Database Localization");
+        primaryStage.setTitle("Employee Management");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
-    private void updateUI(Label labelFirstName, Label labelLastName, Label labelEmail, Button button, Label labelChooseLanguage) {
+    private void updateUI(Stage primaryStage, Label labelFirstName, Label labelLastName, Label labelEmail, Button button, Label labelChooseLanguage) {
+        primaryStage.setTitle(bundle.getString("app.title"));
         labelFirstName.setText(bundle.getString("label.firstName"));
         labelLastName.setText(bundle.getString("label.lastName"));
         labelEmail.setText(bundle.getString("label.email"));
@@ -96,7 +97,7 @@ public class DB_Localisation extends Application {
 
     private void saveData(String firstName, String lastName, String email, String selectedLanguage) {
         // Connection details should be properly managed and secured
-        String jdbcUrl = "jdbc:mysql://localhost:3306/localise_db";
+        String jdbcUrl = "jdbc:mysql://localhost:3306/localise_db?useUnicode=true&characterEncoding=UTF-8";
         String dbUser = "root";
         String dbPassword = "test";
 
