@@ -1,148 +1,132 @@
 package com.example.db_localisation;
 
 import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class DB_Localisation extends Application {
 
-    // Database connection parameters. Replace with actual credentials
-
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/localise_db";
-    private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "test";
-
     private ResourceBundle bundle;
-    private Label firstNameLabel;
-    private Label lastNameLabel;
-    private Label emailLabel;
-    @FXML
-    private Button saveButton;
-    @FXML
-    private TextField firstNameInput;
-    @FXML
-    private TextField lastNameInput;
-    @FXML
-    private TextField emailInput;
+    private Locale locale_en = new Locale("en", "US");
+    private Locale locale_fa = new Locale("fa", "IR");
+    private Locale locale_ja = new Locale("ja", "JP");
 
     @Override
     public void start(Stage primaryStage) {
-        ComboBox<String> languageSelector = new ComboBox<>();
-        languageSelector.getItems().addAll("English", "Farsi", "Japanese");
-        languageSelector.setValue("English");
-
-
-        languageSelector.setOnAction(event -> {
-            String selectedLanguage = languageSelector.getValue();
-            System.out.println("Selected language: " + selectedLanguage);
-            if (selectedLanguage.equals("Farsi")) {
-                bundle = ResourceBundle.getBundle("messages", new Locale("fa", "IR"));
-            } else if (selectedLanguage.equals("Japanese")) {
-                bundle = ResourceBundle.getBundle("messages", Locale.JAPAN);
-            } else {
-                bundle = ResourceBundle.getBundle("messages", new Locale("en", "EN"));
-            }
-            updateUI(primaryStage);
-        });
-
-
-        primaryStage.setTitle("Database Localization");
-
         GridPane grid = new GridPane();
-        grid.setPadding(new Insets(20, 20, 20, 20));
-        grid.setVgap(10);
+        grid.setPadding(new Insets(10));
+        grid.setVgap(8);
         grid.setHgap(10);
 
-        firstNameLabel = new Label();
-        firstNameInput = new TextField();
+        ComboBox<String> comboBoxLanguage = new ComboBox<>();
+        comboBoxLanguage.getItems().addAll("English", "Farsi", "Japanese");
+        comboBoxLanguage.setValue("English");
 
-        lastNameLabel = new Label();
-        lastNameInput = new TextField();
+        Label labelChooseLanguage = new Label("Choose Language:");
+        GridPane.setConstraints(labelChooseLanguage, 0, 0);
+        GridPane.setConstraints(comboBoxLanguage, 1, 0);
 
-        emailLabel = new Label();
-        emailInput = new TextField();
+        Label labelFirstName = new Label("First Name:");
+        TextField inputFirstName = new TextField();
+        GridPane.setConstraints(labelFirstName, 0, 1);
+        GridPane.setConstraints(inputFirstName, 1, 1);
 
-        saveButton = new Button();
+        Label labelLastName = new Label("Last Name:");
+        TextField inputLastName = new TextField();
+        GridPane.setConstraints(labelLastName, 0, 2);
+        GridPane.setConstraints(inputLastName, 1, 2);
 
-        grid.add(new Label("Select Language: "), 0, 0);
-        grid.add(languageSelector, 1, 0);
-        grid.add(firstNameLabel, 0, 1);
-        grid.add(firstNameInput, 1, 1);
-        grid.add(lastNameLabel, 0, 2);
-        grid.add(lastNameInput, 1, 2);
-        grid.add(emailLabel, 0, 3);
-        grid.add(emailInput, 1, 3);
-        grid.add(saveButton, 1, 4);
+        Label labelEmail = new Label("Email:");
+        TextField inputEmail = new TextField();
+        GridPane.setConstraints(labelEmail, 0, 3);
+        GridPane.setConstraints(inputEmail, 1, 3);
 
-        Scene scene = new Scene(grid, 300, 200);
+        Button button = new Button("Save");
+        GridPane.setConstraints(button, 1, 4);
+
+        comboBoxLanguage.setOnAction(event -> {
+            String selectedLanguage = comboBoxLanguage.getValue();
+            if (selectedLanguage.equals("Farsi")) {
+                bundle = ResourceBundle.getBundle("com.example.db_localisation.messages", locale_fa);
+            } else if (selectedLanguage.equals("Japanese")) {
+                bundle = ResourceBundle.getBundle("com.example.db_localisation.messages", locale_ja);
+            } else {
+                //bundle = ResourceBundle.getBundle("messages", locale_en);
+                bundle = ResourceBundle.getBundle("com.example.db_localisation.messages", locale_en);
+
+            }
+            updateUI(labelFirstName, labelLastName, labelEmail, button, labelChooseLanguage);
+        });
+
+        //bundle = ResourceBundle.getBundle("messages", locale_en);
+        bundle = ResourceBundle.getBundle("com.example.db_localisation.messages", locale_en);
+
+        updateUI(labelFirstName, labelLastName, labelEmail, button, labelChooseLanguage);
+
+        button.setOnAction(e -> saveData(inputFirstName.getText(), inputLastName.getText(), inputEmail.getText(), comboBoxLanguage.getValue()));
+
+        grid.getChildren().addAll(labelChooseLanguage, comboBoxLanguage, labelFirstName, inputFirstName, labelLastName, inputLastName, labelEmail, inputEmail, button);
+
+        Scene scene = new Scene(grid, 400, 200);
+        primaryStage.setTitle("Database Localization");
         primaryStage.setScene(scene);
         primaryStage.show();
-
-        bundle = ResourceBundle.getBundle("messages", new Locale("en", "EN"));
-        updateUI(primaryStage);
-
-        saveButton.setOnAction(e -> saveData(firstNameInput.getText(), lastNameInput.getText(), emailInput.getText(), languageSelector.getValue()));
     }
 
-    private void updateUI(Stage primaryStage) {
-        primaryStage.setTitle(bundle.getString("app.title"));
-        firstNameLabel.setText(bundle.getString("label.firstName"));
-        lastNameLabel.setText(bundle.getString("label.lastName"));
-        emailLabel.setText(bundle.getString("label.email"));
-        saveButton.setText(bundle.getString("button.save"));
-
-        firstNameInput.setPromptText(bundle.getString("label.firstName"));
-        lastNameInput.setPromptText(bundle.getString("label.lastName"));
-        emailInput.setPromptText(bundle.getString("label.email"));
+    private void updateUI(Label labelFirstName, Label labelLastName, Label labelEmail, Button button, Label labelChooseLanguage) {
+        labelFirstName.setText(bundle.getString("label.firstName"));
+        labelLastName.setText(bundle.getString("label.lastName"));
+        labelEmail.setText(bundle.getString("label.email"));
+        button.setText(bundle.getString("button.save"));
+        labelChooseLanguage.setText(bundle.getString("label.chooseLanguage"));
     }
 
     private void saveData(String firstName, String lastName, String email, String selectedLanguage) {
+        // Connection details should be properly managed and secured
+        String jdbcUrl = "jdbc:mysql://localhost:3306/localise_db";
+        String dbUser = "root";
+        String dbPassword = "test";
+
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            try (Connection conn = DriverManager.getConnection(jdbcUrl, dbUser, dbPassword)) {
+                String tableName = switch (selectedLanguage) {
+                    case "Farsi" -> "employee_fa";
+                    case "Japanese" -> "employee_ja";
+                    default -> "employee_en";
+                };
 
-            String tableName;
-            switch (selectedLanguage) {
-                case "Farsi":
-                    tableName = "employee_fa";
-                    break;
-                case "Japanese":
-                    tableName = "employee_ja";
-                    break;
-                default:
-                    tableName = "employee_en";
-            }
-
-            String sql = "INSERT INTO " + tableName + " (first_name, last_name, email) VALUES (?, ?, ?)";
-            PreparedStatement statement = conn.prepareStatement(sql);
-            statement.setString(1, firstName);
-            statement.setString(2, lastName);
-            statement.setString(3, email);
-            statement.executeUpdate();
-            conn.close();
-
-            Platform.runLater(() -> {
+                String sql = "INSERT INTO " + tableName + " (first_name, last_name, email) VALUES (?, ?, ?)";
+                try (PreparedStatement statement = conn.prepareStatement(sql)) {
+                    statement.setString(1, firstName);
+                    statement.setString(2, lastName);
+                    statement.setString(3, email);
+                    statement.executeUpdate();
+                }
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle(bundle.getString("alert.title"));
-                alert.setHeaderText(null);
+                alert.setTitle("Success");
                 alert.setContentText(bundle.getString("message.saved"));
                 alert.showAndWait();
-            });
-
-        } catch (ClassNotFoundException | SQLException e) {
+            }
+        } catch (Exception e) {
             e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setContentText("Failed to save data.");
+            alert.showAndWait();
         }
     }
 
@@ -150,4 +134,3 @@ public class DB_Localisation extends Application {
         launch(args);
     }
 }
-
